@@ -1,0 +1,39 @@
+
+# Examle TRUSS - for MAE 3403 Spring 2018 - Homework 9
+# https://www.mathalino.com/reviewer/engineering-mechanics/problem-407-warren-truss-method-joints
+
+# Lines starting with a # character are comments to be ignored
+# You may have comment lines anywhere in the file
+
+# blank lines are also allowed and will be ignored
+
+# Other lines in the file are identified by specific KEYWORDS, followed by data
+# KEYWORDS may include Capital letters, but capitalization must not be required
+# each line stands alone, and there is no required ORDER to the file
+
+Title, 'Warren Truss Example'
+
+#         Sut(ksi) Sy(ksi) E(Mpsi) 
+Material,   105,    82,      30
+
+Static_factor,  3.5
+
+# Nodes- locations for link-joints and applied loads
+# The node name is a string
+#      name   x     y
+node,  Left,  0,     0
+node,  B,     60,    103.92
+node,  C,     120,   0
+node,  D,     180,   103.92
+node,  Right, 240,   0
+
+# Links - structural members connecting two nodes
+       name    Node-1   Node-2    
+link,  1,     Left,    B
+link,  2,     Left,    C
+link,  3,     B,       C
+link,  top,   B,       D
+link,  5,     C,       D
+link,  6,     C,       Right
+link,  7,     D,       Right
+

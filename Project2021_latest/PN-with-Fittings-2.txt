@@ -1,0 +1,149 @@
+# Pipe Network
+    # The SI units are: m for pipe length, mm for pipe diameter
+    #                  L/s for external flow rates
+    #                  m of water for pressure head
+    #                  m for elevation of node
+    #                  Pa*s for dynamic viscosity
+    #                  m for pipe roughness
+    #                  m of water for specified pressure
+    #                  kg/m^3 for density
+    # The English units are:  ft for pipe length, in for pipe diameter
+    #                        cfs for external flow rates
+    #                        psi for specified node pressure
+    #                        in of water for head loss
+    #                        ft for pipe roughness
+    #                        lb*s/ft^2 for dynamic viscosity
+    #                        lb/ft^3 for specific gravity
+<Fluid>
+	mu: 0.00089
+	rho: 1000.0
+</Fluid>
+<Pipe>
+	nodes: (a,b)
+	diam: 300.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (a,c)
+	diam: 200.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (b,e)
+	diam: 200.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (c,d)
+	diam: 200.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (c,f)
+	diam: 150.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (d,e)
+	diam: 200.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (d,g)
+	diam: 150.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (d,i)
+	diam: 300.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (e,h)
+	diam: 150.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (f,g)
+	diam: 250.0
+	rough: 0.00025
+</Pipe>
+<Pipe>
+	nodes: (g,h)
+	diam: 250.0
+	rough: 0.00025
+</Pipe>
+<Loop>
+	Name: A
+	Pipes: a-b, b-e, d-e, c-d, a-c
+</Loop>
+<Loop>
+	Name: B
+	Pipes: c-d, d-g, f-g, c-f
+</Loop>
+<Loop>
+	Name: C
+	Pipes: d-e, e-h, g-h, d-g
+</Loop>
+<Node>
+	Name: a
+	Position: -125.0, 100.0, 0.0
+	Fitting:  reducing tee
+	External Flow: 60.00
+</Node>
+<Node>
+	Name: b
+	Position: 125.0, 100.0, 0.0
+	Fitting:  reducing tee
+	External Flow: -10.00
+	MinP: 2.000
+	Sprinkler: True
+</Node>
+<Node>
+	Name: c
+	Position: -125.0, 0.0, 0.0
+	Fitting:  reducing tee
+	External Flow: 0.00
+</Node>
+<Node>
+	Name: d
+	Position: 0.0, 0.0, 0.0
+	Fitting:  reducing tee
+	External Flow: 0.00
+</Node>
+<Node>
+	Name: e
+	Position: 125.0, 0.0, 0.0
+	Fitting:  reducing tee
+	External Flow: 0.00
+</Node>
+<Node>
+	Name: f
+	Position: -125.0, -100.0, 0.0
+	Fitting:  tee
+	External Flow: -15.00
+	MinP: 2.000
+	Sprinkler: True
+</Node>
+<Node>
+	Name: g
+	Position: 0.0, -100.0, 0.0
+	Fitting:  tee
+	External Flow: 0.00
+</Node>
+<Node>
+	Name: h
+	Position: 125.0, -100.0, 0.0
+	Fitting:  tee
+	External Flow: -15.00
+	MinP: 2.000
+	Sprinkler: True
+</Node>
+<Node>
+	Name: i
+	Position: 0.0, 0.0, 5.0
+	Fitting:  coupler
+	External Flow: -20.00
+	MinP: 2.000
+	Sprinkler: True
+</Node>
