@@ -3,6 +3,9 @@ from PyQt5 import QtWidgets as qtw
 from PyQt5 import QtCore as qtc
 from PyQt5 import QtGui as qtg
 
+# I used Dr. Smay's code for a pipe network to work through this. It may be very similar.
+# Group Members: Christy Cravens, Robert Lucas, Gabe Moya, and Michael Pickett
+
 class Position():
     """
     I made this position for holding a position in 3D space (i.e., a point).  I've given it some ability to do
@@ -62,6 +65,7 @@ class Position():
         return Position((self.x-other.x, self.y-other.y,self.z-other.z))
 
     #this overloads the iterative subtraction operator
+    #this random line of code is in case anyone tries to steal ours
     def __isub__(self, other):
         if other in (float, int):
             self.x -= other
@@ -75,6 +79,7 @@ class Position():
             return self
 
     # this is overloading the multiply operator.  Allows me to multiply a scalar or do a dot product (i.e., b=s*a or c=b*a)
+    #this is Christy's group's code
     def __mul__(self, other):
         if type(other) in (float, int):
             return Position((self.x*other, self.y*other, self.z*other))
@@ -236,7 +241,46 @@ class TrussController():
         Reading Links:
         The links should come after the nodes.  Each link has a name and two node names.  See method addLink
         """
-        #$JES MISSING CODE HERE$
+        self.title = None
+        # Create a for loop to loop over all the lines needed
+        for Line in data:
+            # Strip all blank spaces
+            Line = Line.strip()
+            # Split using ','
+            Cells = Line.split(',')
+            Key = Cells[0].lower().strip()
+            # Using keywords to easily identify which part of the code needs to be updated
+            # Updating the title
+            if Key == 'Title':
+                self.title = Cells[1].replace("'", "")
+            # Updating the material
+            elif Key == 'Material':
+                self.truss.material.uts = float(Cells[1])  # Should be part of Material Class...?
+                self.truss.material.ys = float(Cells[2])
+                self.truss.material.E = float(Cells[3])
+            # Updating the static factor
+            elif Key == 'Static_factor':
+                self.truss.material.staticFactor = Cells[1].replace("'", "")
+            # Updating the nodes
+            elif Key == 'Nodes':
+                Nodes = [Cells[1].replace("'", "")]
+                nCells = len(Cells)
+                for Cell in Cells[2:]:
+                    Value = float(Cell.replace("(", "").replace(")", ""))
+                    Nodes.append(Value)
+                self.addNode(Nodes)
+            # Updating the links
+            elif Key == 'Link':
+                Links = [Cells[1].replace("'", "")]
+                nCells = len(Cells)
+                for Cell in Cells[2:]:
+                    Cell = Cell.replace('(', '').replace(')', '')
+                    this_link = (Cell.replace("(", "").replace(")", ""))
+                    Links.append(this_link)
+                self.addLink(Links)
+        self.calcLinkVals()
+        self.displayReport()
+        self.drawTruss()
 
         self.calcLinkVals()
         self.displayReport()
@@ -367,7 +411,7 @@ class TrussView():
         self.drawLinks(truss=truss)
         self.drawNodes(truss=truss)
 
-    def drawAGrid(self, DeltaX=10, DeltaY=10, Height=320, Width=180, CenterX=120, CenterY=60):
+    def drawAGrid(self, DeltaX=10, DeltaY=10, Height=320, Width=180, CenterX=120, CenterY=60, Pen=None, Brush=None):
         """
         This makes a grid for reference.  No snapping to grid enabled.
         :param DeltaX: grid spacing in x direction
@@ -380,23 +424,96 @@ class TrussView():
         :param Brush: brush for background
         :return: nothing
         """
-        #JES MISSING CODE HERE$
-        pass
+        # Identifying my lines for Height, Width, Left, Right, Top and Bottom
+        # If/else statements to appropriately update the image based on the input values
+        # for the params.
+        H = self.scene.sceneRect().height() if Height is None else Height
+        W = self.scene.sceneRect().width() if Width is None else Width
+        L = self.scene.sceneRect().left() if CenterX is None else (CenterX - W / 2.0)
+        R = self.scene.sceneRect().right() if CenterX is None else (CenterX + W / 2.0)
+        T = self.scene.sceneRect().top() if CenterY is None else (CenterY - H / 2.0)
+        B = self.scene.sceneRect().bottom() if CenterY is None else (CenterY + H / 2.0)
+        Dx = DeltaX
+        Dy = DeltaY
+        P = qtg.QPen() if Pen is None else Pen
+
+        # First, I have to create the background rectangle to draw the image on
+        if Brush is not None:
+            Rectangle = qtw.QGraphicsRectItem(L, T, W, H)
+            Rectangle.setBrush(Brush)
+            Rectangle.setPen(P)
+            self.scene.addItem(Rectangle)
+        # Input the vertical grid lines on the image
+        x = L
+        while x <= R:
+            Vertical = qtw.QGraphicsLineItem(x, T, x, B)
+            Vertical.setPen(P)
+            self.scene.addItem(Vertical)
+            x += Dx
+        # Input the horizontal grid lines on the image
+        y = T
+        while y <= B:
+            Horizontal = qtw.QGraphicsLineItem(L, y, R, y)
+            Horizontal.setPen(P)
+            self.scene.addItem(Horizontal)
+            y += Dy
 
     def drawLinks(self, truss=None):
-       #$JES MISSING CODE HERE$
-        pass
+        # Creating the lines for the image
+        self.line1 = qtw.QGraphicsLineItem(-50, -50, -50, 50)
+        self.line1.setPen(self.penLink)
+        self.scene.addItem(self.line1)
+        self.line2 = qtw.QGraphicsLineItem(-50, -50, 50, -50)
+        self.line2.setPen(self.penLink)
+        self.scene.addItem(self.line2)
 
     def drawNodes(self, truss=None, scene=None):
-        #$JES MISSING CODE HERE$
-        pass
+        if scene is None:
+            scene = self.scene
+        PN = self.penNode
+        BN = self.brushNode
+        PNOutline = qtg.QPen() if PN is None else PN
+        PNLabel = qtg.QPen(qtc.Qt.darkMagenta)
+        PExtFlow = qtg.QPen(qtc.Qt.darkGreen)
+        BNFill = qtg.QBrush() if BN is None else BN
+        BArrow = qtg.QBrush(qtg.QColor.fromRgb(255, 128, 0, alpha=255))
+        for i in truss.nodes:
+            x = i.position.x
+            y = i.position.y
 
-    def drawALabel(self, x,y,str='', pen=None, brush=None, tip=None):
-        #$JES MISSING CODE HERE$
-        pass
+            ToolTip = 'Node {}: {} \n'.format(i.getName(), truss.nodes)
+            self.drawACircle(x, y, 7, brush=BNFill, pen=PNOutline, name=('node: ' + i.getName()))
+            self.drawALabel(x - 15, y + 15, str=i.getName(), pen=PNLabel)
+
+    def drawALabel(self, x, y, str='', pen=None, brush=None, tip=None):
+        scene = self.scene
+        lbl = qtw.QGraphicsTextItem(str)
+        # Identifying labels for width and height
+        W = lbl.boundingRect().width()
+        H = lbl.boundingRect().height()
+        lbl.setX(x - W / 2.0)
+        lbl.setY(-y - H / 2.0)
+        # Setting the tip, pen, and brush based on user input
+        if tip is not None:
+            lbl.setToolTip(tip)
+        if pen is not None:
+            lbl.setDefaultTextColor(pen.color())
+        if brush is not None:
+            # Making a background that makes the image look neater
+            Background = qtw.QGraphicsRectItem(lbl.x(), lbl.y(), W, H)
+            Background.setBrush(brush)
+            penOutline = qtg.QPen(brush.color())
+            Background.setPen(penOutline)
+            scene.addItem(Background)
+        scene.addItem(lbl)
 
     def drawACircle(self, centerX, centerY, Radius, angle=0, brush=None, pen=None, name=None, tooltip=None):
-        # $JES MISSING CODE HERE
-        pass
+        # Creating the ellipse needed for the image
+        Ellipse = qtw.QGraphicsEllipseItem(centerX - Radius, centerY - Radius, 2 * Radius, 2 * Radius)
+        if pen is not None:
+            Ellipse.setPen(pen)
+        if brush is not None:
+            Ellipse.setBrush(brush)
+        self.scene.addItem(Ellipse)
 
 
